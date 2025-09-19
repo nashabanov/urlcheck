@@ -1,14 +1,7 @@
 package checker
 
-import "time"
-
-type Result struct {
-	URL        string
-	StatusCode int
-	Duration   time.Duration
-	Error      error
-}
+import "urlcheck/types"
 
 type Checker interface {
-	Check(url string) *Result
+	Check(url string) *types.Result
 }

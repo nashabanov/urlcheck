@@ -3,9 +3,10 @@ package checker
 import (
 	"testing"
 	"time"
+	"urlcheck/types"
 )
 
-func checkResult(t *testing.T, result *Result, expectedURL string) {
+func checkResult(t *testing.T, result *types.Result, expectedURL string) {
 	if result.URL != expectedURL {
 		t.Errorf("Expected URL to be '%s', got '%s'", expectedURL, result.URL)
 	}

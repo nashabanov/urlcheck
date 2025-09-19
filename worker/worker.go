@@ -4,18 +4,28 @@ import (
 	"context"
 	"sync"
 	"urlcheck/checker"
+	"urlcheck/types"
 )
 
 type Worker struct {
 	MaxWorkers int
 }
 
-func (w *Worker) Run(ctx context.Context, c checker.Checker, urls []string) []*checker.Result {
+func (w *Worker) validateMaxWorkers() {
 	if w.MaxWorkers <= 0 {
 		w.MaxWorkers = 1
 	}
+}
 
-	results := make(chan *checker.Result, len(urls))
+func (w *Worker) Run(
+	ctx context.Context,
+	c checker.Checker,
+	urls []string,
+	callback func(current, total int, result *types.Result),
+) error {
+	w.validateMaxWorkers()
+
+	results := make(chan *types.Result, len(urls))
 	urlChan := make(chan string, len(urls))
 
 	for _, u := range urls {
@@ -41,16 +51,20 @@ func (w *Worker) Run(ctx context.Context, c checker.Checker, urls []string) []*c
 		close(results)
 	}()
 
-	var allResults []*checker.Result
+	processedCount := 0
+	total := len(urls)
+
 	for {
 		select {
 		case res, ok := <-results:
 			if !ok {
-				return allResults
+				return nil
 			}
-			allResults = append(allResults, res)
+			processedCount++
+			callback(processedCount, total, res)
+
 		case <-ctx.Done():
-			return allResults
+			return ctx.Err()
 		}
 	}
 }

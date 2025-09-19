@@ -4,6 +4,7 @@ import (
 	"net"
 	"net/http"
 	"time"
+	"urlcheck/types"
 )
 
 type HTTPChecker struct {
@@ -16,7 +17,7 @@ func NewHTTPChecker() *HTTPChecker {
 	}
 }
 
-func (hc *HTTPChecker) Check(url string) *Result {
+func (hc *HTTPChecker) Check(url string) *types.Result {
 	start := time.Now()
 	client := &http.Client{Timeout: hc.Timeout}
 	resp, err := client.Get(url)
@@ -39,7 +40,7 @@ func (hc *HTTPChecker) Check(url string) *Result {
 			typedErr = ErrNetwork{URL: url}
 		}
 
-		return &Result{
+		return &types.Result{
 			URL:        url,
 			StatusCode: 0,
 			Duration:   duration,
@@ -48,7 +49,7 @@ func (hc *HTTPChecker) Check(url string) *Result {
 	}
 
 	defer resp.Body.Close()
-	return &Result{
+	return &types.Result{
 		URL:        url,
 		StatusCode: resp.StatusCode,
 		Duration:   duration,
