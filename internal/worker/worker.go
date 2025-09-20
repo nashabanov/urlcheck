@@ -3,8 +3,8 @@ package worker
 import (
 	"context"
 	"sync"
-	"urlcheck/checker"
-	"urlcheck/types"
+	"urlcheck/internal/checker"
+	"urlcheck/internal/types"
 )
 
 type Worker struct {

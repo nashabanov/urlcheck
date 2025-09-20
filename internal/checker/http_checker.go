@@ -4,7 +4,7 @@ import (
 	"net"
 	"net/http"
 	"time"
-	"urlcheck/types"
+	"urlcheck/internal/types"
 )
 
 type HTTPChecker struct {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	"time"
-	"urlcheck/types"
+	"urlcheck/internal/types"
 )
 
 type Config struct {
@@ -71,7 +71,7 @@ type Summary struct {
 	Duration time.Duration
 }
 
-func (w *Writer) WriteSummmary(summary Summary) {
+func (w *Writer) WriteSummary(summary Summary) {
 	fmt.Println()
 
 	successRate := float64(summary.Success) / float64(summary.Total) * 100

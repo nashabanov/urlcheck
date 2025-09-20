@@ -2,7 +2,7 @@ package checker
 
 import (
 	"time"
-	"urlcheck/types"
+	"urlcheck/internal/types"
 )
 
 type MockChecker struct {

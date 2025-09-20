@@ -3,7 +3,7 @@ package checker
 import (
 	"testing"
 	"time"
-	"urlcheck/types"
+	"urlcheck/internal/types"
 )
 
 func checkResult(t *testing.T, result *types.Result, expectedURL string) {
