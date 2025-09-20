@@ -2,7 +2,7 @@ package worker
 
 import (
 	"context"
-	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -95,9 +95,12 @@ func TestWorker_MaxWorkers(t *testing.T) {
 	maxWorkers := 2
 	worker := &Worker{MaxWorkers: maxWorkers}
 
-	// Контролируемый checker с синхронизацией
-	controlledChecker := &controlledMockChecker{
-		activeCount: make(chan int, 10), // Буферизованный канал для счетчика
+	var activeCount int64
+	var maxConcurrent int64
+
+	simpleChecker := &atomicMockChecker{
+		activeCount:   &activeCount,
+		maxConcurrent: &maxConcurrent,
 	}
 
 	callback, _ := makeCollectorCallback()
@@ -109,75 +112,41 @@ func TestWorker_MaxWorkers(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Запускаем в горутине с обработкой ошибки
-	errChan := make(chan error, 1)
-	go func() {
-		err := worker.Run(ctx, controlledChecker, urls, callback)
-		errChan <- err
-	}()
+	err := worker.Run(ctx, simpleChecker, urls, callback)
+	if err != nil {
+		t.Errorf("Worker.Run returned unexpected error: %v", err)
+	}
 
-	// Проверяем что количество одновременных операций не превышает maxWorkers
-	maxConcurrent := 0
-	timeout := time.After(time.Second * 5)
-
-	for {
-		select {
-		case activeCount := <-controlledChecker.activeCount:
-			if activeCount > maxConcurrent {
-				maxConcurrent = activeCount
-			}
-			if activeCount == 0 && maxConcurrent > 0 {
-				// Все завершились, проверяем результат
-				if maxConcurrent > maxWorkers {
-					t.Errorf("Expected max %d concurrent workers, got %d", maxWorkers, maxConcurrent)
-				}
-
-				// Проверяем что worker.Run завершился без ошибки
-				select {
-				case err := <-errChan:
-					if err != nil {
-						t.Errorf("Worker.Run returned unexpected error: %v", err)
-					}
-				case <-time.After(time.Millisecond * 100):
-					t.Error("Worker.Run didn't complete in time")
-				}
-
-				return
-			}
-		case <-timeout:
-			t.Fatal("Test timeout")
-		}
+	// Проверяем максимальное количество одновременных операций
+	maxReached := atomic.LoadInt64(&maxConcurrent)
+	if maxReached > int64(maxWorkers) {
+		t.Errorf("Expected max %d concurrent workers, got %d", maxWorkers, maxReached)
 	}
 }
 
-// Контролируемый checker для отслеживания конкуренции
-type controlledMockChecker struct {
-	activeCount chan int
-	mu          sync.Mutex
-	active      int
+// Упрощенный checker с атомарными операциями
+type atomicMockChecker struct {
+	activeCount   *int64
+	maxConcurrent *int64
 }
 
-func (c *controlledMockChecker) Check(url string) *types.Result {
+func (c *atomicMockChecker) Check(url string) *types.Result {
 	// Увеличиваем счетчик активных
-	c.mu.Lock()
-	c.active++
-	currentActive := c.active
-	c.mu.Unlock()
+	current := atomic.AddInt64(c.activeCount, 1)
 
-	// Отправляем текущий счетчик
-	c.activeCount <- currentActive
+	// Обновляем максимум если нужно
+	for {
+		max := atomic.LoadInt64(c.maxConcurrent)
+		if current <= max || atomic.CompareAndSwapInt64(c.maxConcurrent, max, current) {
+			break
+		}
+	}
 
 	// Имитируем работу
 	time.Sleep(time.Millisecond * 200)
 
 	// Уменьшаем счетчик
-	c.mu.Lock()
-	c.active--
-	newActive := c.active
-	c.mu.Unlock()
-
-	// Отправляем обновленный счетчик
-	c.activeCount <- newActive
+	atomic.AddInt64(c.activeCount, -1)
 
 	return &types.Result{
 		URL:        url,
