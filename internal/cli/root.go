@@ -9,11 +9,12 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	"urlcheck/internal/checker"
-	"urlcheck/internal/input"
-	"urlcheck/internal/output"
-	"urlcheck/internal/types"
-	"urlcheck/internal/worker"
+
+	"github.com/nashabanov/urlcheck/internal/checker"
+	"github.com/nashabanov/urlcheck/internal/input"
+	"github.com/nashabanov/urlcheck/internal/output"
+	"github.com/nashabanov/urlcheck/internal/types"
+	"github.com/nashabanov/urlcheck/internal/worker"
 )
 
 func Execute() error {

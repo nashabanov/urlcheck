@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 	"time"
-	"urlcheck/internal/types"
+
+	"github.com/nashabanov/urlcheck/internal/types"
 )
 
 type Config struct {

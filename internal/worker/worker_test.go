@@ -5,8 +5,9 @@ import (
 	"sync"
 	"testing"
 	"time"
-	"urlcheck/internal/checker"
-	"urlcheck/internal/types"
+
+	"github.com/nashabanov/urlcheck/internal/checker"
+	"github.com/nashabanov/urlcheck/internal/types"
 )
 
 func TestValidateMaxWorkers(t *testing.T) {

@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"urlcheck/internal/cli"
+
+	"github.com/nashabanov/urlcheck/internal/cli"
 )
 
 func main() {

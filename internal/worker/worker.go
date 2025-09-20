@@ -3,8 +3,9 @@ package worker
 import (
 	"context"
 	"sync"
-	"urlcheck/internal/checker"
-	"urlcheck/internal/types"
+
+	"github.com/nashabanov/urlcheck/internal/checker"
+	"github.com/nashabanov/urlcheck/internal/types"
 )
 
 type Worker struct {
