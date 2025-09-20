@@ -109,8 +109,12 @@ func TestWorker_MaxWorkers(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Запускаем в горутине
-	go worker.Run(ctx, controlledChecker, urls, callback)
+	// Запускаем в горутине с обработкой ошибки
+	errChan := make(chan error, 1)
+	go func() {
+		err := worker.Run(ctx, controlledChecker, urls, callback)
+		errChan <- err
+	}()
 
 	// Проверяем что количество одновременных операций не превышает maxWorkers
 	maxConcurrent := 0
@@ -127,6 +131,17 @@ func TestWorker_MaxWorkers(t *testing.T) {
 				if maxConcurrent > maxWorkers {
 					t.Errorf("Expected max %d concurrent workers, got %d", maxWorkers, maxConcurrent)
 				}
+
+				// Проверяем что worker.Run завершился без ошибки
+				select {
+				case err := <-errChan:
+					if err != nil {
+						t.Errorf("Worker.Run returned unexpected error: %v", err)
+					}
+				case <-time.After(time.Millisecond * 100):
+					t.Error("Worker.Run didn't complete in time")
+				}
+
 				return
 			}
 		case <-timeout:

@@ -30,7 +30,7 @@ func (hc *HTTPChecker) Check(url string) *types.Result {
 		if netErr, ok := err.(net.Error); ok {
 			if netErr.Timeout() {
 				typedErr = ErrTimeout{URL: url}
-			} else if netErr.Temporary() {
+			} else if netErr.Timeout() {
 				typedErr = ErrConnectionRefused{URL: url}
 			} else {
 				typedErr = ErrNetwork{URL: url}

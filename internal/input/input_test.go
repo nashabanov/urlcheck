@@ -105,7 +105,9 @@ func TestGetURLs_FileOnly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tmpFile.Close()
+	if err = tmpFile.Close(); err != nil {
+		t.Fatal(err)
+	}
 
 	urls, err := NewConfig(tmpFile.Name(), nil, false, 10).GetURLs()
 	if err != nil {
@@ -132,8 +134,14 @@ func TestGetURLs_StdinOnly(t *testing.T) {
 	}
 	defer os.Remove(tmpFile.Name())
 
-	tmpFile.WriteString(content)
-	tmpFile.Seek(0, 0)
+	_, err = tmpFile.WriteString(content)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = tmpFile.Seek(0, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	os.Stdin = tmpFile
 
@@ -217,7 +225,9 @@ func TestReadFiltredLines_Limit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tmpFile.Close()
+	if err = tmpFile.Close(); err != nil {
+		t.Fatal(err)
+	}
 
 	file, err := os.Open(tmpFile.Name())
 	if err != nil {
